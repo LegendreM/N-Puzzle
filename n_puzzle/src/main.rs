@@ -4,6 +4,11 @@ use std::io::Read;
 use std::str::Lines;
 use std::process;
 
+mod board;
+
+use board::Board;
+use board::BoardType;
+
 fn read_file(filename: &String) -> String {
     let mut f = File::open(filename).expect("file not found");
 
@@ -85,6 +90,49 @@ fn parse_file(content: &String) -> Result<Vec<Vec<u32>>, String> {
     }
     return Err(format!("error parsing teals"));
 }
+
+// fn get_snail_order(board: &Vec<Vec<u32>>) -> Vec<u32> {
+//     let mut snail: Vec<u32> = Vec::new();
+//     let mut min = 0;
+//     let mut max = board.len();
+
+//     while min < max {
+//         for x in min..max {
+//             snail.push(board[min][x]);
+//         }
+//         for y in (min + 1)..(max - 1) {
+//             snail.push(board[y][max - 1])
+//         }
+//         for x in (min..max).rev() {
+//             snail.push(board[max - 1][x]);
+//         }
+//         for y in ((min + 1)..(max - 1)).rev() {
+//             snail.push(board[y][min])
+//         }
+//         min += 1;
+//         max -= 1;
+//     }
+//     snail.dedup();
+//     snail
+// }
+
+// fn linear_goal(len: u32) -> Vec<u32> {
+//     (0..len).collect()
+// }
+
+// fn snail_goal(len: u32) -> Vec<u32> {
+//     let lin: Vec<u32> = (0..len).collect();
+//     let mut snail: Vec<u32> = vec![1; 10];
+// }
+
+// fn is_puzzle_solvable(board: Vec<Vec<u32>>) {
+//     let snail = get_snail_order(&board);
+//     let goal = goal(snail.len() as u32);
+
+
+
+// }
+
 fn failable_main() -> Result<(), Box<::std::error::Error>> {
     let args: Vec<String> = env::args().collect();
 
@@ -93,9 +141,13 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
         if contents.is_empty() {
             return Err(format!("Empty file").into());
         }
-        else {
-            let board = parse_file(&contents)?;
-        }
+        let board_vec: Vec<Vec<u32>> = parse_file(&contents)?;
+        let line_size = board_vec.len();
+        let board_vec: Vec<u32> = board_vec.into_iter().flat_map(|v| v.into_iter()).collect();
+        let board = Board::new(board_vec.into_boxed_slice(), line_size, BoardType::Snail);
+        println!("board:\nlinear: {:?}\ntemplated: {:?}", board.linear(), board.templated());
+        // println!("board: {:?}", get_snail_order(&board));
+
     }
     else {
         return Err(format!("No args :(").into());
