@@ -11,7 +11,7 @@ fn read_file(filename: &String) -> String {
     f.read_to_string(&mut contents)
         .expect("something went wrong reading the file");
 
-    println!("With text:\n{}", contents);
+    // println!("With text:\n{}", contents);
     contents
 }
 
@@ -43,10 +43,7 @@ fn is_teals_valid(board: &Vec<Vec<u32>>, line_count: usize) -> bool {
     flatted.dedup();
 
     if before_dedup_len == flatted.len() {
-        if flatted.iter().any(|v| v >= &&(before_dedup_len as u32)) {
-            return false;
-        }
-        return true;
+        return !flatted.iter().any(|v| v >= &&(before_dedup_len as u32));
     } else {
         return false;
     }
@@ -55,13 +52,13 @@ fn is_teals_valid(board: &Vec<Vec<u32>>, line_count: usize) -> bool {
 fn parse_file(content: &String) -> Result<Vec<Vec<u32>>, String> {
     let lines = content.lines();
     let str_board = remove_comments(lines);
-    println!("Without comments:\n{:?}", str_board);
+    // println!("Without comments:\n{:?}", str_board);
     let line_count;
     match str_board[0].parse::<usize>() {
         Ok(n) => line_count = n,
         Err(e) => return Err(format!("error parsing line count: {:?}", e)),
     }
-    println!("line count: {:?}", line_count);
+    // println!("line count: {:?}", line_count);
     if str_board.len() != line_count + 1 {
         return Err(format!("error parsing line count: line count != {:?}", line_count));
     }
@@ -82,7 +79,7 @@ fn parse_file(content: &String) -> Result<Vec<Vec<u32>>, String> {
             Err(e) => return Err(format!("error parsing line count: {}", e)),
         }
     }
-    println!("board: {:?}", board);
+    // println!("board: {:?}", board);
     if is_teals_valid(&board, line_count) {
         return Ok(board);
     }
