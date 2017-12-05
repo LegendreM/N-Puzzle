@@ -11,14 +11,10 @@ impl Board {
             line_size: line_size
         }
     }
-}
 
-// Private
-impl Board {
-    fn inversions(&self) -> usize {
+    pub fn inversions(&self) -> usize {
         let mut inversions = 0;
-        let mut i = 0;
-        for current in self.data.iter() {
+        for (i, current) in self.data.iter().enumerate() {
              inversions += self.data.iter().skip(i).map(|x| {
                 if *x < *current && *current != 0 && *x != 0 {
                     1
@@ -26,7 +22,6 @@ impl Board {
                     0
                 }
             }).sum::<usize>();
-            i += 1;
         }
         inversions
     }
