@@ -13,6 +13,25 @@ impl Board {
     }
 }
 
+// Private
+impl Board {
+    fn inversions(&self) -> usize {
+        let mut inversions = 0;
+        let mut i = 0;
+        for current in self.data.iter() {
+             inversions += self.data.iter().skip(i).map(|x| {
+                if *x < *current && *current != 0 && *x != 0 {
+                    1
+                } else {
+                    0
+                }
+            }).sum::<usize>();
+            i += 1;
+        }
+        inversions
+    }
+}
+
 pub struct Solver {
     board: Board,
     expected: Board,
