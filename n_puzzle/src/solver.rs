@@ -1,6 +1,6 @@
 use std::{error, fmt};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
     UnmatchingSizes,
     Unsolvable,
@@ -21,6 +21,7 @@ impl fmt::Display for Error {
     }
 }
 
+#[derive(Debug)]
 pub struct Board {
     pub data: Box<[u32]>,
     pub line_size: usize,
@@ -44,6 +45,7 @@ impl Board {
     }
 }
 
+#[derive(Debug)]
 pub struct Solver {
     board: Board,
     expected: Board,
@@ -74,4 +76,67 @@ impl Solver {
         }
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unmatching_sizes() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0].into_boxed_slice(), 4);
+
+        let solver_result = Solver::new(board, expected);
+
+        assert!(solver_result.is_err());
+
+        assert_eq!(solver_result.unwrap_err(), Error::UnmatchingSizes);
+    }
+
+    #[test]
+    fn unsolvable_simple() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 4, 5, 6, 8, 7, 0].into_boxed_slice(), 3);
+
+        let solver_result = Solver::new(board, expected);
+
+        assert!(solver_result.is_err());
+
+        assert_eq!(solver_result.unwrap_err(), Error::Unsolvable);
+    }
+
+    #[test]
+    fn unsolvable_medium() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![2, 1, 3, 5, 4, 6, 8, 7, 0].into_boxed_slice(), 3);
+
+        let solver_result = Solver::new(board, expected);
+
+        assert!(solver_result.is_err());
+
+        assert_eq!(solver_result.unwrap_err(), Error::Unsolvable);
+    }
+
+    #[test]
+    fn unsolvable_hard() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![2, 1, 5, 4, 3, 6, 8, 7, 0].into_boxed_slice(), 3);
+
+        let solver_result = Solver::new(board, expected);
+
+        assert!(solver_result.is_err());
+
+        assert_eq!(solver_result.unwrap_err(), Error::Unsolvable);
+    }
+
+    #[test]
+    fn solvable() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 4, 5, 6, 0, 7, 8].into_boxed_slice(), 3);
+
+        let solver_result = Solver::new(board, expected);
+
+        assert!(solver_result.is_ok());
+    }
 }
