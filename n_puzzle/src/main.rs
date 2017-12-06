@@ -1,12 +1,12 @@
+extern crate n_puzzle;
+
 use std::env;
 use std::fs::File;
 use std::io::Read;
 use std::str::Lines;
 use std::process;
 
-mod solver;
-
-use solver::{Board, Solver};
+use n_puzzle::solver::{Board, Solver};
 
 fn read_file(filename: &String) -> String {
     let mut f = File::open(filename).expect("file not found");
@@ -15,7 +15,6 @@ fn read_file(filename: &String) -> String {
     f.read_to_string(&mut contents)
         .expect("something went wrong reading the file");
 
-    // println!("With text:\n{}", contents);
     contents
 }
 
@@ -56,13 +55,11 @@ fn is_teals_valid(board: &Vec<Vec<u32>>, line_count: usize) -> bool {
 fn parse_file(content: &String) -> Result<Vec<Vec<u32>>, String> {
     let lines = content.lines();
     let str_board = remove_comments(lines);
-    // println!("Without comments:\n{:?}", str_board);
     let line_count;
     match str_board[0].parse::<usize>() {
         Ok(n) => line_count = n,
         Err(e) => return Err(format!("error parsing line count: {:?}", e)),
     }
-    // println!("line count: {:?}", line_count);
     if str_board.len() != line_count + 1 {
         return Err(format!("error parsing line count: line count != {:?}", line_count));
     }
