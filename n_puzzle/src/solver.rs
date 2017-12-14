@@ -1,4 +1,11 @@
-use std::{error, fmt};
+extern crate panoradix;
+
+use panoradix::RadixMap;
+
+use std::{error, fmt, rc};
+
+
+type Teal = u32;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -21,14 +28,14 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Board {
-    pub data: Box<[u32]>,
+    pub data: Box<[Teal]>,
     pub line_size: usize,
 }
 
 impl Board {
-    pub fn new(data: Box<[u32]>, line_size: usize) -> Self {
+    pub fn new(data: Box<[Teal]>, line_size: usize) -> Self {
         Self { data, line_size }
     }
 
@@ -42,6 +49,29 @@ impl Board {
             }
         }
         inversions
+    }
+}
+
+#[derive(Clone, Eq, PartialEq, Debug)]
+struct State {
+    pub cost: usize,
+    pub board: Board,
+    pub parent: Option<rc::Rc<State>>,
+}
+
+impl Ord for State {
+    fn cmp(&self, other: &State) -> Ordering {
+        // Notice that the we flip the ordering on costs.
+        // In case of a tie we compare positions - this step is necessary
+        // to make implementations of `PartialEq` and `Ord` consistent.
+        self.cost.cmp(&other.cost)
+    }
+}
+
+// `PartialOrd` needs to be implemented as well.
+impl PartialOrd for State {
+    fn partial_cmp(&self, other: &State) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -74,6 +104,15 @@ impl Solver {
         } else {
             Ok(Self { board, expected })
         }
+    }
+
+    pub fn solve(&self) {
+        let mut open_heap = BinaryHeap::new();
+        let mut close_map: RadixMap<Vec<Teal>, usize> = RadixMap::new();
+
+        open_heap.push(State { cost: 0, board: self.board.clone(), None});
+
+        unimplemented!();
     }
 
 }
