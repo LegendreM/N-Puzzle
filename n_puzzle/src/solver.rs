@@ -50,6 +50,10 @@ impl Board {
         }
         inversions
     }
+
+    pub fn children(&self) -> Vec<Board> {
+        unimplemented!()
+    }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
@@ -112,7 +116,14 @@ impl Solver {
 
         open_heap.push(State { cost: 0, board: self.board.clone(), None});
 
-        unimplemented!();
+        while !open_heap.is_empty() {
+            let state = open_heap.pop();
+            if &self.board, &self.expected) == 0 {
+                unimplemented!("I found the answer !");
+            }
+
+
+        }
     }
 
 }
