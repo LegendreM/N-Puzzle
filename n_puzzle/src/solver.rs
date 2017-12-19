@@ -5,7 +5,7 @@ use panoradix::RadixMap;
 use std::{error, fmt, rc};
 
 
-type Teal = u32;
+type Tile = u32;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -30,12 +30,12 @@ impl fmt::Display for Error {
 
 #[derive(Debug, Clone)]
 pub struct Board {
-    pub data: Box<[Teal]>,
+    pub data: Box<[Tile]>,
     pub line_size: usize,
 }
 
 impl Board {
-    pub fn new(data: Box<[Teal]>, line_size: usize) -> Self {
+    pub fn new(data: Box<[Tile]>, line_size: usize) -> Self {
         Self { data, line_size }
     }
 
@@ -111,7 +111,7 @@ impl Solver {
 
     pub fn solve(&self) {
         let mut open_heap = BinaryHeap::new();
-        let mut close_map: RadixMap<Vec<Teal>, usize> = RadixMap::new();
+        let mut close_map: RadixMap<Vec<Tile>, usize> = RadixMap::new();
 
         open_heap.push(State { cost: 0, board: self.board.clone(), None});
 
