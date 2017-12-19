@@ -1,9 +1,8 @@
-extern crate panoradix;
-
 use panoradix::RadixMap;
 
-use std::{error, fmt, rc};
-
+use std::{error, fmt};
+use std::collections::BinaryHeap;
+use std::cmp::Ordering;
 
 type Tile = u32;
 
@@ -28,7 +27,7 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
     pub data: Box<[Tile]>,
     pub line_size: usize,
@@ -51,20 +50,54 @@ impl Board {
         inversions
     }
 
-    pub fn children(&self) -> Vec<Board> {
+    pub fn children(&self) -> Vec<Self> {
+        let mut children = Vec::with_capacity(4);
+        let zero = self.data.iter().position(|&x| x == 0).unwrap();
+        let line_size = self.line_size;
 
-        unimplemented!()
+        if zero > line_size {
+            let mut board = self.clone();
+            board.data.swap(zero, zero - line_size);
+            children.push(board);
+        }
+        if zero < line_size * (line_size - 1) {
+            let mut board = self.clone();
+            board.data.swap(zero, zero + line_size);
+            children.push(board);
+        }
+        if zero % line_size > 0 {
+            let mut board = self.clone();
+            board.data.swap(zero, zero - 1);
+            children.push(board);
+        }
+        if zero % line_size < line_size - 1 {
+            let mut board = self.clone();
+            board.data.swap(zero, zero + 1);
+            children.push(board);
+        }
+
+        children
     }
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-struct State {
+struct State<'a> {
     pub cost: usize,
     pub board: Board,
-    pub parent: Option<rc::Rc<State>>,
+    pub parent: Option<&'a State<'a>>,
 }
 
-impl Ord for State {
+impl<'a> State<'a> {
+    pub fn children(&'a self) -> Vec<State<'a>> {
+        self.board.children().into_iter().map(|board| Self {
+            cost: self.cost + 1,
+            board: board,
+            parent: Some(self)
+        }).collect()
+    }
+}
+
+impl<'a> Ord for State<'a> {
     fn cmp(&self, other: &State) -> Ordering {
         // Notice that the we flip the ordering on costs.
         other.cost.cmp(&self.cost)
@@ -72,7 +105,7 @@ impl Ord for State {
 }
 
 // `PartialOrd` needs to be implemented as well.
-impl PartialOrd for State {
+impl<'a> PartialOrd for State<'a> {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -109,19 +142,17 @@ impl Solver {
         }
     }
 
-    pub fn solve(&self) {
+    pub fn solve(&self) -> Vec<Board> {
         let mut open_heap = BinaryHeap::new();
-        let mut close_map: RadixMap<Vec<Tile>, usize> = RadixMap::new();
+        let mut close_map: RadixMap<[Tile], usize> = RadixMap::new();
 
-        open_heap.push(State { cost: 0, board: self.board.clone(), None});
+        open_heap.push(State{ cost: 0, board: self.board.clone(), parent: None });
 
-        while !open_heap.is_empty() {
-            let state = open_heap.pop();
-            if &self.board, &self.expected) == 0 {
+        loop {
+            let state = open_heap.pop().expect("invalid empty open heap");
+            if state.board == self.expected {
                 unimplemented!("I found the answer !");
             }
-
-
         }
     }
 
