@@ -52,6 +52,7 @@ impl Board {
     }
 
     pub fn children(&self) -> Vec<Board> {
+
         unimplemented!()
     }
 }
@@ -66,9 +67,7 @@ struct State {
 impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
         // Notice that the we flip the ordering on costs.
-        // In case of a tie we compare positions - this step is necessary
-        // to make implementations of `PartialEq` and `Ord` consistent.
-        self.cost.cmp(&other.cost)
+        other.cost.cmp(&self.cost)
     }
 }
 
