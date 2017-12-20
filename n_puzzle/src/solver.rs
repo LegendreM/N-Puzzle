@@ -81,23 +81,23 @@ impl Board {
 }
 
 #[derive(Clone, Eq, PartialEq, Debug)]
-struct State<'a> {
+struct State {
     pub cost: usize,
     pub board: Board,
-    pub parent: Option<&'a State<'a>>,
+    pub parent: Option<Box<State>>,
 }
 
-impl<'a> State<'a> {
-    pub fn children(&'a self) -> Vec<State<'a>> {
+impl State {
+    pub fn children(self) -> Vec<State> {
         self.board.children().into_iter().map(|board| Self {
             cost: self.cost + 1,
             board: board,
-            parent: Some(self)
+            parent: Some(Box::new(self.clone()))
         }).collect()
     }
 }
 
-impl<'a> Ord for State<'a> {
+impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
         // Notice that the we flip the ordering on costs.
         other.cost.cmp(&self.cost)
@@ -105,7 +105,7 @@ impl<'a> Ord for State<'a> {
 }
 
 // `PartialOrd` needs to be implemented as well.
-impl<'a> PartialOrd for State<'a> {
+impl PartialOrd for State {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -152,6 +152,24 @@ impl Solver {
             let state = open_heap.pop().expect("invalid empty open heap");
             if state.board == self.expected {
                 unimplemented!("I found the answer !");
+            }
+            let children = state.children();
+            for child in children {
+                let mut cost = 0;
+                let mut exist = false;
+
+                if let Some((first_key, first_value)) = close_map.find(&child.board.data[..]).next() {
+                    cost = *first_value;
+                    exist = true;
+                }
+                if exist && child.cost < cost {
+                    close_map.remove(&child.board.data[..]);
+                    close_map.insert(&child.board.data[..], child.cost);
+                    open_heap.push(child);
+                } else if !exist {
+                    close_map.insert(&child.board.data[..], child.cost);
+                    open_heap.push(child);
+                }
             }
         }
     }
@@ -218,5 +236,31 @@ mod tests {
         let solver_result = Solver::new(board, expected);
 
         assert!(solver_result.is_ok());
+    }
+
+    #[test]
+    fn state_tree() {
+        let board = Board::new(vec![1, 2, 3, 4, 0, 6, 7, 8, 5].into_boxed_slice(), 3);
+
+        let mut open_heap = BinaryHeap::new();
+
+        let parent = State { cost: 0, board: board, parent: None };
+
+        let children = parent.children();
+        {
+            {
+                for child in children {
+                    open_heap.push(child);
+                }
+            }
+            let parent = open_heap.pop().unwrap();
+            let children = parent.children();
+            {
+                for child in children {
+                    open_heap.push(child);
+                }
+            }
+            open_heap.pop();
+        }
     }
 }
