@@ -80,6 +80,30 @@ impl Board {
     }
 }
 
+enum Move {
+    Up,
+    Down,
+    Left,
+    Right,    
+}
+
+impl Move {
+    pub fn new(parent: &Board, board: &Board) -> Self {
+        let line_size = board.line_size;
+        let zero = board.data.iter().position(|&x| x == 0).unwrap();
+        let parent_zero = parent.data.iter().position(|&x| x == 0).unwrap();
+        if zero == parent_zero + line_size {
+            Move::Up
+        } else if zero + line_size == parent_zero {
+            Move::Down
+        } else if zero + 1 == parent_zero {
+            Move::Right
+        } else /*zero == parent_zero + 1*/ {
+            Move::Left
+        }
+    }
+}
+
 #[derive(Clone, Eq, PartialEq, Debug)]
 struct State {
     pub cost: usize,
@@ -88,12 +112,25 @@ struct State {
 }
 
 impl State {
-    pub fn children(self) -> Vec<State> {
+    pub fn children(&self) -> Vec<State> {
         self.board.children().into_iter().map(|board| Self {
             cost: self.cost + 1,
             board: board,
             parent: Some(Box::new(self.clone()))
         }).collect()
+    }
+
+    pub fn build_path(&self) -> Vec<Move> {
+        fn precedent_move(state: &State, path: &mut Vec<Move>) {
+            if let Some(ref parent) = state.parent {
+                precedent_move(parent, path);
+                let move_ = Move::new(&parent.board, &state.board);
+                path.push(move_);
+            }
+        }
+        let mut path = Vec::new();
+        precedent_move(self, &mut path);
+        path
     }
 }
 
