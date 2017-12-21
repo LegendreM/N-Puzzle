@@ -1,4 +1,4 @@
-use panoradix::RadixMap;
+use std::collections::HashSet;
 
 use std::{error, fmt};
 use std::collections::BinaryHeap;
@@ -61,12 +61,10 @@ struct State {
 }
 
 impl State {
-    pub fn children<F>(&self, expected: &Board, heuristic: F) -> Vec<State>
-        where F: Fn(&Board, &Board) -> usize
-    {
+    pub fn children<H: Heuristic>(&self, expected: &Board, heuristic: &H) -> Vec<State> {
         let parent = Rc::new(self.clone());
         self.board.children().into_iter().map(|board| Self {
-            cost: self.cost + heuristic(&board, expected) + 1,
+            cost: self.cost + heuristic.distance(&board) + 1,
             board: board,
             parent: Some(parent.clone())
         }).collect()
@@ -88,15 +86,14 @@ impl State {
 
 impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
-        // Notice that the we flip the ordering on costs.
-        other.cost.cmp(&self.cost)
+        self.partial_cmp(other).unwrap()
     }
 }
 
-// `PartialOrd` needs to be implemented as well.
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
-        Some(self.cmp(other))
+        // Notice that the we flip the ordering on costs.
+        Some(other.cost.cmp(&self.cost))
     }
 }
 
@@ -134,8 +131,9 @@ impl Solver {
     }
 
     pub fn solve<H: Heuristic>(&self) -> Vec<Move> {
+        let heuristic = H::new(&self.expected);
         let mut open_heap = BinaryHeap::new();
-        let mut close_map: RadixMap<[Tile], usize> = RadixMap::new();
+        let mut close_map = HashSet::new();
 
         open_heap.push(State{ cost: 0, board: self.board.clone(), parent: None });
 
@@ -144,24 +142,13 @@ impl Solver {
             if state.board.data == self.expected.data {
                 return state.build_path();
             }
-            let children = state.children(&self.expected, H::distance);
+            let children = state.children(&self.expected, &heuristic);
             for child in children {
-                let mut cost = 0;
-                let mut exist = false;
-
-                if let Some(value) = close_map.get(&child.board.data[..]) {
-                    cost = *value;
-                    exist = true;
-                }
-                if exist && child.cost < cost {
-                    close_map.remove(&child.board.data[..]);
-                    close_map.insert(&child.board.data[..], child.cost);
-                    open_heap.push(child);
-                } else if !exist {
-                    close_map.insert(&child.board.data[..], child.cost);
+                if !close_map.contains(&child.board.data) {
                     open_heap.push(child);
                 }
             }
+            close_map.insert(state.board.data.clone());
         }
     }
 
@@ -235,12 +222,13 @@ mod tests {
     fn state_tree() {
         let board = Board::new(vec![1, 2, 3, 4, 0, 6, 7, 8, 5].into_boxed_slice(), 3);
         let expected = Board::new(vec![1, 2, 3, 4, 5, 6, 0, 7, 8].into_boxed_slice(), 3);
+        let dijkstra = Dijkstra::new(&expected);
 
         let mut open_heap = BinaryHeap::new();
 
         let parent = State { cost: 0, board: board, parent: None };
 
-        let children = parent.children(&expected, |x, y| 1);
+        let children = parent.children(&expected, &dijkstra);
         {
             {
                 for child in children {
@@ -248,7 +236,7 @@ mod tests {
                 }
             }
             let parent = open_heap.pop().unwrap();
-            let children = parent.children(&expected, |x, y| 1);
+            let children = parent.children(&expected, &dijkstra);
             {
                 for child in children {
                     open_heap.push(child);

@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["mlegendr"]
 
 [dependencies]
-panoradix = "0.6.5"
+
+[profile.release]
+debug = true

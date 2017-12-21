@@ -1,7 +1,7 @@
 
 pub type Tile = u8;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Board {
     pub data: Box<[Tile]>,
     pub line_size: usize,
