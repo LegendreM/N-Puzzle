@@ -7,6 +7,7 @@ use std::rc::Rc;
 use board::{Board, Tile};
 use heuristic::Heuristic;
 
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
     UnmatchingSizes,
@@ -56,6 +57,7 @@ impl Move {
 #[derive(Clone, Eq, PartialEq, Debug)]
 struct State {
     pub cost: usize,
+    pub distance: usize,
     pub board: Board,
     pub parent: Option<Rc<State>>,
 }
@@ -64,7 +66,8 @@ impl State {
     pub fn children<H: Heuristic>(&self, expected: &Board, heuristic: &H) -> Vec<State> {
         let parent = Rc::new(self.clone());
         self.board.children().into_iter().map(|board| Self {
-            cost: self.cost + heuristic.distance(&board) + 1,
+            cost: self.cost + 1,
+            distance: heuristic.distance(&board),
             board: board,
             parent: Some(parent.clone())
         }).collect()
@@ -93,7 +96,8 @@ impl Ord for State {
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
         // Notice that the we flip the ordering on costs.
-        Some(other.cost.cmp(&self.cost))
+        Some(other.distance.cmp(&self.distance)
+                .then(other.cost.cmp(&self.cost)))
     }
 }
 
@@ -135,7 +139,8 @@ impl Solver {
         let mut open_heap = BinaryHeap::new();
         let mut close_map = HashSet::new();
 
-        open_heap.push(State{ cost: 0, board: self.board.clone(), parent: None });
+        // will be poped just after
+        open_heap.push(State{ cost: 0, distance: 0, board: self.board.clone(), parent: None });
 
         loop {
             let state = open_heap.pop().expect("invalid empty open heap");
@@ -226,7 +231,7 @@ mod tests {
 
         let mut open_heap = BinaryHeap::new();
 
-        let parent = State { cost: 0, board: board, parent: None };
+        let parent = State { cost: 0, distance: 0, board: board, parent: None };
 
         let children = parent.children(&expected, &dijkstra);
         {
