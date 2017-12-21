@@ -1,5 +1,5 @@
 
-pub type Tile = u32;
+pub type Tile = u8;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Board {
@@ -14,7 +14,7 @@ impl Board {
 
     pub fn inversions(&self) -> usize {
         let mut inversions = 0;
-        for (i, &current) in self.data.iter().enumerate() {
+        for (i, &current) in (&self.data[..self.data.len() - 1]).iter().enumerate() {
             for &x in self.data.iter().skip(i + 1) {
                 if x < current && current != 0 && x != 0 {
                     inversions += 1;

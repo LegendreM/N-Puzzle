@@ -66,7 +66,7 @@ impl State {
     {
         let parent = Rc::new(self.clone());
         self.board.children().into_iter().map(|board| Self {
-            cost: self.cost + heuristic(&board, expected),
+            cost: self.cost + heuristic(&board, expected) + 1,
             board: board,
             parent: Some(parent.clone())
         }).collect()
@@ -112,9 +112,9 @@ fn is_solvable(board: &Board, expected: &Board) -> bool {
     let mut board_inv = board.inversions();
     let mut expected_inv = expected.inversions();
 
-    if board.data.len() % 2 == 0 {
-        board_inv += board.data.iter().position(|x| *x == 0).unwrap() / board.data.len();
-        expected_inv += expected.data.iter().position(|x| *x == 0).unwrap() / board.data.len();
+    if board.line_size % 2 == 0 {
+        board_inv += board.data.iter().position(|x| *x == 0).unwrap() / board.line_size;
+        expected_inv += expected.data.iter().position(|x| *x == 0).unwrap() / board.line_size;
     }
 
     board_inv % 2 == expected_inv % 2
@@ -140,7 +140,6 @@ impl Solver {
         open_heap.push(State{ cost: 0, board: self.board.clone(), parent: None });
 
         loop {
-            println!("{:?}", open_heap);
             let state = open_heap.pop().expect("invalid empty open heap");
             if state.board.data == self.expected.data {
                 return state.build_path();
@@ -172,6 +171,7 @@ impl Solver {
 mod tests {
     use super::*;
     use heuristic::Manhattan;
+    use heuristic::Dijkstra;
 
     #[test]
     fn unmatching_sizes() {
@@ -265,6 +265,18 @@ mod tests {
         
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<Manhattan>();
+
+        let expected_result = &[Move::Right, Move::Down, Move::Right];
+        assert_eq!(&result, expected_result)
+    }
+
+    #[test]
+    fn solver_3x3_dijkstra() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
+        
+        let solver = Solver::new(board, expected).unwrap();
+        let result = solver.solve::<Dijkstra>();
 
         let expected_result = &[Move::Right, Move::Down, Move::Right];
         assert_eq!(&result, expected_result)
