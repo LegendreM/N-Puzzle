@@ -3,8 +3,9 @@ use panoradix::RadixMap;
 use std::{error, fmt};
 use std::collections::BinaryHeap;
 use std::cmp::Ordering;
-
-type Tile = u32;
+use std::rc::Rc;
+use board::{Board, Tile};
+use heuristic::Heuristic;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -27,60 +28,8 @@ impl fmt::Display for Error {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Board {
-    pub data: Box<[Tile]>,
-    pub line_size: usize,
-}
-
-impl Board {
-    pub fn new(data: Box<[Tile]>, line_size: usize) -> Self {
-        Self { data, line_size }
-    }
-
-    pub fn inversions(&self) -> usize {
-        let mut inversions = 0;
-        for (i, &current) in self.data.iter().enumerate() {
-            for &x in self.data.iter().skip(i + 1) {
-                if x < current && current != 0 && x != 0 {
-                    inversions += 1;
-                }
-            }
-        }
-        inversions
-    }
-
-    pub fn children(&self) -> Vec<Self> {
-        let mut children = Vec::with_capacity(4);
-        let zero = self.data.iter().position(|&x| x == 0).unwrap();
-        let line_size = self.line_size;
-
-        if zero > line_size {
-            let mut board = self.clone();
-            board.data.swap(zero, zero - line_size);
-            children.push(board);
-        }
-        if zero < line_size * (line_size - 1) {
-            let mut board = self.clone();
-            board.data.swap(zero, zero + line_size);
-            children.push(board);
-        }
-        if zero % line_size > 0 {
-            let mut board = self.clone();
-            board.data.swap(zero, zero - 1);
-            children.push(board);
-        }
-        if zero % line_size < line_size - 1 {
-            let mut board = self.clone();
-            board.data.swap(zero, zero + 1);
-            children.push(board);
-        }
-
-        children
-    }
-}
-
-enum Move {
+#[derive (Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Move {
     Up,
     Down,
     Left,
@@ -108,15 +57,18 @@ impl Move {
 struct State {
     pub cost: usize,
     pub board: Board,
-    pub parent: Option<Box<State>>,
+    pub parent: Option<Rc<State>>,
 }
 
 impl State {
-    pub fn children(&self) -> Vec<State> {
+    pub fn children<F>(&self, expected: &Board, heuristic: F) -> Vec<State>
+        where F: Fn(&Board, &Board) -> usize
+    {
+        let parent = Rc::new(self.clone());
         self.board.children().into_iter().map(|board| Self {
-            cost: self.cost + 1,
+            cost: self.cost + heuristic(&board, expected),
             board: board,
-            parent: Some(Box::new(self.clone()))
+            parent: Some(parent.clone())
         }).collect()
     }
 
@@ -147,6 +99,8 @@ impl PartialOrd for State {
         Some(self.cmp(other))
     }
 }
+
+
 
 #[derive(Debug)]
 pub struct Solver {
@@ -179,24 +133,25 @@ impl Solver {
         }
     }
 
-    pub fn solve(&self) -> Vec<Board> {
+    pub fn solve<H: Heuristic>(&self) -> Vec<Move> {
         let mut open_heap = BinaryHeap::new();
         let mut close_map: RadixMap<[Tile], usize> = RadixMap::new();
 
         open_heap.push(State{ cost: 0, board: self.board.clone(), parent: None });
 
         loop {
+            println!("{:?}", open_heap);
             let state = open_heap.pop().expect("invalid empty open heap");
-            if state.board == self.expected {
-                unimplemented!("I found the answer !");
+            if state.board.data == self.expected.data {
+                return state.build_path();
             }
-            let children = state.children();
+            let children = state.children(&self.expected, H::distance);
             for child in children {
                 let mut cost = 0;
                 let mut exist = false;
 
-                if let Some((first_key, first_value)) = close_map.find(&child.board.data[..]).next() {
-                    cost = *first_value;
+                if let Some(value) = close_map.get(&child.board.data[..]) {
+                    cost = *value;
                     exist = true;
                 }
                 if exist && child.cost < cost {
@@ -216,6 +171,7 @@ impl Solver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use heuristic::Manhattan;
 
     #[test]
     fn unmatching_sizes() {
@@ -278,12 +234,13 @@ mod tests {
     #[test]
     fn state_tree() {
         let board = Board::new(vec![1, 2, 3, 4, 0, 6, 7, 8, 5].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 4, 5, 6, 0, 7, 8].into_boxed_slice(), 3);
 
         let mut open_heap = BinaryHeap::new();
 
         let parent = State { cost: 0, board: board, parent: None };
 
-        let children = parent.children();
+        let children = parent.children(&expected, |x, y| 1);
         {
             {
                 for child in children {
@@ -291,7 +248,7 @@ mod tests {
                 }
             }
             let parent = open_heap.pop().unwrap();
-            let children = parent.children();
+            let children = parent.children(&expected, |x, y| 1);
             {
                 for child in children {
                     open_heap.push(child);
@@ -299,5 +256,17 @@ mod tests {
             }
             open_heap.pop();
         }
+    }
+
+    #[test]
+    fn solver_3x3_manhattan() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
+        
+        let solver = Solver::new(board, expected).unwrap();
+        let result = solver.solve::<Manhattan>();
+
+        let expected_result = &[Move::Right, Move::Down, Move::Right];
+        assert_eq!(&result, expected_result)
     }
 }

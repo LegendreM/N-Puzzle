@@ -1,3 +1,8 @@
 extern crate panoradix;
 
-pub mod solver;
+mod solver;
+mod heuristic;
+mod board;
+
+pub use board::Board;
+pub use solver::Solver;
