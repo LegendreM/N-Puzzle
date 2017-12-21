@@ -2,7 +2,7 @@ use heuristic::{Heuristic, index_positions};
 use board::Board;
 
 pub struct Manhattan {
-    positions: Box<[(isize, isize)]>
+    positions: Box<[(isize, isize)]>,
 }
 
 impl Heuristic for Manhattan {

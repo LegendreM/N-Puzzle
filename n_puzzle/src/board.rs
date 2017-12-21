@@ -1,8 +1,6 @@
-use std::hash::{Hash, Hasher};
-
 pub type Tile = u8;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Board {
     pub data: Box<[Tile]>,
     pub line_size: usize,
@@ -52,17 +50,5 @@ impl Board {
         }
 
         children
-    }
-}
-
-impl Hash for Board {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let mut hash: usize = 0;
-
-        for (i, &tile) in self.data.iter().enumerate() {
-            hash ^= (tile as usize & 0xF) << ((i & 7) << 2);
-        }
-
-        state.write_usize(hash);
     }
 }

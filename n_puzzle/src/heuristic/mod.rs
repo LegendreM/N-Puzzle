@@ -1,8 +1,10 @@
 mod manhattan;
 mod dijkstra;
+mod euclidean;
 
 pub use self::manhattan::Manhattan;
 pub use self::dijkstra::Dijkstra;
+pub use self::euclidean::Euclidean;
 use board::Board;
 
 fn index_positions(board: &Board) -> Box<[(isize, isize)]> {

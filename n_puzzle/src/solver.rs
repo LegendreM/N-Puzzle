@@ -1,12 +1,9 @@
-use std::collections::HashSet;
-
-use std::{error, fmt};
-use std::collections::BinaryHeap;
+use std::collections::{HashSet, BinaryHeap};
 use std::cmp::Ordering;
+use std::{error, fmt};
 use std::rc::Rc;
-use board::{Board, Tile};
+use board::Board;
 use heuristic::Heuristic;
-
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -17,8 +14,8 @@ pub enum Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            UnmatchingSizes => "sizes doesn't match",
-            Unsolvable => "puzzle is unsolvable",
+            Error::UnmatchingSizes => "sizes doesn't match",
+            Error::Unsolvable => "puzzle is unsolvable",
         }
     }
 }
@@ -42,13 +39,14 @@ impl Move {
         let line_size = board.line_size;
         let zero = board.data.iter().position(|&x| x == 0).unwrap();
         let parent_zero = parent.data.iter().position(|&x| x == 0).unwrap();
+
         if zero == parent_zero + line_size {
             Move::Up
         } else if zero + line_size == parent_zero {
             Move::Down
         } else if zero + 1 == parent_zero {
             Move::Right
-        } else /*zero == parent_zero + 1*/ {
+        } else /* zero == parent_zero + 1 */ {
             Move::Left
         }
     }
@@ -101,8 +99,6 @@ impl PartialOrd for State {
     }
 }
 
-
-
 #[derive(Debug)]
 pub struct Solver {
     board: Board,
@@ -120,7 +116,6 @@ fn is_solvable(board: &Board, expected: &Board) -> bool {
 
     board_inv % 2 == expected_inv % 2
 }
-
 
 impl Solver {
     pub fn new(board: Board, expected: Board) -> Result<Self, Error> {

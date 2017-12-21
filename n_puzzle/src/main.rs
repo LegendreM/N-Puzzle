@@ -6,7 +6,8 @@ use std::io::Read;
 use std::str::Lines;
 use std::process;
 
-use n_puzzle::{Board, Solver, Manhattan, Tile};
+use n_puzzle::{Board, Solver, Tile};
+use n_puzzle::{Manhattan, Dijkstra, Euclidean};
 
 fn read_file(filename: &String) -> String {
     let mut f = File::open(filename).expect("file not found");
