@@ -1,8 +1,8 @@
 use std::collections::{HashSet, BinaryHeap};
-use std::cmp::Ordering;
 use std::{error, fmt};
-use std::rc::Rc;
 use board::Board;
+use state::State;
+use tile_move::Move;
 use heuristic::Heuristic;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -23,79 +23,6 @@ impl error::Error for Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(error::Error::description(self))
-    }
-}
-
-#[derive (Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Move {
-    Up,
-    Down,
-    Left,
-    Right,    
-}
-
-impl Move {
-    pub fn new(parent: &Board, board: &Board) -> Self {
-        let line_size = board.line_size;
-        let zero = board.data.iter().position(|&x| x == 0).unwrap();
-        let parent_zero = parent.data.iter().position(|&x| x == 0).unwrap();
-
-        if zero == parent_zero + line_size {
-            Move::Up
-        } else if zero + line_size == parent_zero {
-            Move::Down
-        } else if zero + 1 == parent_zero {
-            Move::Right
-        } else /* zero == parent_zero + 1 */ {
-            Move::Left
-        }
-    }
-}
-
-#[derive(Clone, Eq, PartialEq, Debug)]
-struct State {
-    pub cost: usize,
-    pub distance: usize,
-    pub board: Board,
-    pub parent: Option<Rc<State>>,
-}
-
-impl State {
-    pub fn children<H: Heuristic>(&self, expected: &Board, heuristic: &H) -> Vec<State> {
-        let parent = Rc::new(self.clone());
-        self.board.children().into_iter().map(|board| Self {
-            cost: self.cost + 1,
-            distance: heuristic.distance(&board),
-            board: board,
-            parent: Some(parent.clone())
-        }).collect()
-    }
-
-    pub fn build_path(&self) -> Vec<Move> {
-        fn precedent_move(state: &State, path: &mut Vec<Move>) {
-            if let Some(ref parent) = state.parent {
-                precedent_move(parent, path);
-                let move_ = Move::new(&parent.board, &state.board);
-                path.push(move_);
-            }
-        }
-        let mut path = Vec::new();
-        precedent_move(self, &mut path);
-        path
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &State) -> Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &State) -> Option<Ordering> {
-        // Notice that the we flip the ordering on costs.
-        Some(other.distance.cmp(&self.distance)
-                .then(other.cost.cmp(&self.cost)))
     }
 }
 
@@ -132,7 +59,7 @@ impl Solver {
     pub fn solve<H: Heuristic>(&self) -> Vec<Move> {
         let heuristic = H::new(&self.expected);
         let mut open_heap = BinaryHeap::new();
-        let mut close_map = HashSet::new();
+        let mut close_set = HashSet::new();
 
         // will be poped just after
         open_heap.push(State{ cost: 0, distance: 0, board: self.board.clone(), parent: None });
@@ -144,11 +71,11 @@ impl Solver {
             }
             let children = state.children(&self.expected, &heuristic);
             for child in children {
-                if !close_map.contains(&child.board.data) {
+                if !close_set.contains(&child.board.data) {
                     open_heap.push(child);
                 }
             }
-            close_map.insert(state.board.data.clone());
+            close_set.insert(state.board.data.clone());
         }
     }
 
