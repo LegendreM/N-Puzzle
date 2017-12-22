@@ -5,3 +5,4 @@ n_puzzle/!node_modules/gitbook-plugin-rust-playpen
 n_puzzle/node_modules/gitbook-plugin-rust-playpen/book/mode-rust.js
 n_puzzle/node_modules/gitbook-plugin-rust-playpen/book/ace
 n_puzzle/target
+**/.DS_Store
