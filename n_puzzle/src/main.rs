@@ -109,9 +109,13 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
         let expected_vec: Vec<Tile> = expected_vec.into_iter().flat_map(|v| v.into_iter()).collect();
         let expected = Board::new(expected_vec.into_boxed_slice(), line_size);
 
-        let solver = Solver::new(board, expected).unwrap();
-        let result = solver.solve::<Manhattan>();
-        println!("{:?}", result);
+        match Solver::new(board, expected) {
+            Ok(solver) => {
+                let result = solver.solve::<Manhattan>();
+                println!("{:?}", result);
+            },
+            Err(e) => println!("{}", e)
+        }
     }
     else {
         return Err(format!("No args :(").into());
