@@ -1,8 +1,7 @@
 extern crate n_puzzle;
 extern crate clap;
 
-use clap::{Arg, App, SubCommand};
-use std::env;
+use clap::{Arg, App};
 use std::fs::File;
 use std::io::Read;
 use std::str::Lines;
@@ -39,7 +38,7 @@ fn remove_comments(lines: Lines) -> Vec<&str> {
     ret
 }
 
-fn is_teals_valid(board: &Vec<Vec<Tile>>, line_count: usize) -> bool {
+fn is_teals_valid(board: &Vec<Vec<Tile>>) -> bool {
     let my_vec = board.clone();
 
     let mut flatted: Vec<_> = my_vec.iter().flat_map(|v| v.iter()).collect();
@@ -83,15 +82,13 @@ fn parse_file(content: &String) -> Result<Vec<Vec<Tile>>, String> {
             Err(e) => return Err(format!("error parsing line count: {}", e)),
         }
     }
-    if is_teals_valid(&board, line_count) {
+    if is_teals_valid(&board) {
         return Ok(board);
     }
     return Err(format!("error parsing teals"));
 }
 
 fn failable_main() -> Result<(), Box<::std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-
     let matches = App::new("npuzzle")
                           .version("1.0")
                           .about("A* agorithm to solve npuzzle")
@@ -111,7 +108,7 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
                                .short("d")
                                .long("distance")
                                .value_name("STRING")
-                               .help("Heuristic used to solve npuzzle")
+                               .help("Heuristic used to solve npuzzle [manhattan, dijkstra, euclidean, miss_placed, out_of_raw]")
                                .required(true))
                           .get_matches();
 
@@ -142,7 +139,7 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
     let expected_vec: Vec<Vec<Tile>> = parse_file(&expected)?;
     let expected_line_size = expected_vec.len();
     let expected_vec: Vec<Tile> = expected_vec.into_iter().flat_map(|v| v.into_iter()).collect();
-    let expected = Board::new(expected_vec.into_boxed_slice(), line_size);
+    let expected = Board::new(expected_vec.into_boxed_slice(), expected_line_size);
 
     match Solver::new(board, expected) {
         Ok(solver) => {
