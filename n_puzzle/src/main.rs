@@ -121,8 +121,6 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
                                .required(true))
                           .get_matches();
 
-
-
     let input = matches.value_of("INPUT").unwrap();
     println!("Value for input: {}", input);
 

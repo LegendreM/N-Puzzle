@@ -14,7 +14,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn children<H: Heuristic>(&self, expected: &Board, heuristic: &H) -> Vec<State> {
+    pub fn children<H: Heuristic>(&self, heuristic: &H) -> Vec<State> {
         let parent = Rc::new(self.clone());
         self.board.children().into_iter().map(|board| Self {
             cost: self.cost + 1,

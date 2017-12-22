@@ -61,7 +61,7 @@ impl Solver {
         let mut open_heap = BinaryHeap::new();
         let mut close_set = HashSet::new();
         let mut time_complexity = 0;
-        let mut mem_complexity = 0;
+        let mut mem_complexity = 1;
         let mut mem_complexity_max = 0;
 
         // will be poped just after
@@ -73,7 +73,7 @@ impl Solver {
             if state.board.data == self.expected.data {
                 return (mem_complexity_max, time_complexity, state.build_path());
             }
-            let children = state.children(&self.expected, &heuristic);
+            let children = state.children(&heuristic);
             for child in children {
                 if !close_set.contains(&child.board.data) {
                     open_heap.push(child);
@@ -166,7 +166,7 @@ mod tests {
 
         let parent = State { cost: 0, distance: 0, board: board, parent: None };
 
-        let children = parent.children(&expected, &dijkstra);
+        let children = parent.children(&dijkstra);
         {
             {
                 for child in children {
@@ -174,7 +174,7 @@ mod tests {
                 }
             }
             let parent = open_heap.pop().unwrap();
-            let children = parent.children(&expected, &dijkstra);
+            let children = parent.children(&dijkstra);
             {
                 for child in children {
                     open_heap.push(child);

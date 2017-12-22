@@ -17,10 +17,10 @@ impl Heuristic for OutOfRaw {
             let i = i as isize;
             let (exp_x, exp_y) = self.positions[tile as usize];
             let (cur_x, cur_y) = (i % line_size, i / line_size);
-            if (exp_x != cur_x) {
+            if exp_x != cur_x {
                 cost += 1;
             }
-            if (exp_y != cur_y) {
+            if exp_y != cur_y {
                 cost += 1;
             }
         }
