@@ -111,8 +111,8 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
 
         match Solver::new(board, expected) {
             Ok(solver) => {
-                let result = solver.solve::<Manhattan>();
-                println!("{:?}", result);
+                let (mem, time, moves) = solver.solve::<Manhattan>();
+                println!("memory complexity: {}\ntime complexity: {}\nmoves count: {}\nmoves:\n{:?}", mem, time, moves.len(), moves);
             },
             Err(e) => println!("{}", e)
         }

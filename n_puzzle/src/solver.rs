@@ -56,24 +56,33 @@ impl Solver {
         }
     }
 
-    pub fn solve<H: Heuristic>(&self) -> Vec<Move> {
+    pub fn solve<H: Heuristic>(&self) -> (usize, usize, Vec<Move>) {
         let heuristic = H::new(&self.expected);
         let mut open_heap = BinaryHeap::new();
         let mut close_set = HashSet::new();
+        let mut time_complexity = 0;
+        let mut mem_complexity = 0;
+        let mut mem_complexity_max = 0;
 
         // will be poped just after
         open_heap.push(State{ cost: 0, distance: 0, board: self.board.clone(), parent: None });
 
         loop {
             let state = open_heap.pop().expect("invalid empty open heap");
+            mem_complexity -= 1;
             if state.board.data == self.expected.data {
-                return state.build_path();
+                return (mem_complexity_max, time_complexity, state.build_path());
             }
             let children = state.children(&self.expected, &heuristic);
             for child in children {
                 if !close_set.contains(&child.board.data) {
                     open_heap.push(child);
+                    time_complexity += 1;
+                    mem_complexity += 1;
                 }
+            }
+            if mem_complexity > mem_complexity_max {
+                mem_complexity_max = mem_complexity;
             }
             close_set.insert(state.board.data.clone());
         }
