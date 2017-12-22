@@ -100,7 +100,7 @@ fn parse_file(content: &String) -> Result<Vec<Vec<Tile>>, String> {
 fn failable_main() -> Result<(), Box<::std::error::Error>> {
     let matches = App::new("npuzzle")
                           .version("1.0")
-                          .about("A* agorithm to solve npuzzle")
+                          .about("A* algorithm to solve npuzzle")
                           .arg(Arg::with_name("INPUT")
                                .short("i")
                                .long("input")
