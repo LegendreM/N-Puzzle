@@ -2,11 +2,13 @@ mod manhattan;
 mod dijkstra;
 mod euclidean;
 mod miss_placed;
+mod out_of_raw;
 
 pub use self::manhattan::Manhattan;
 pub use self::dijkstra::Dijkstra;
 pub use self::euclidean::Euclidean;
 pub use self::miss_placed::MissPlaced;
+pub use self::out_of_raw::OutOfRaw;
 use board::Board;
 
 fn index_positions(board: &Board) -> Box<[(isize, isize)]> {

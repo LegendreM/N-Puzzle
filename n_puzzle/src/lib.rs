@@ -9,4 +9,4 @@ use tile_move::Move;
 pub use board::{Board, Tile};
 pub use solver::Solver;
 pub use heuristic::Heuristic;
-pub use heuristic::{Manhattan, Dijkstra, Euclidean, MissPlaced};
+pub use heuristic::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};

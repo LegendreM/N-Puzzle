@@ -9,7 +9,7 @@ use std::str::Lines;
 use std::process;
 
 use n_puzzle::{Board, Solver, Tile};
-use n_puzzle::{Manhattan, Dijkstra, Euclidean, MissPlaced};
+use n_puzzle::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};
 
 fn read_file(filename: &String) -> String {
     let mut f = File::open(filename).expect("file not found");
@@ -153,7 +153,8 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
                 "dijkstra" => result = solver.solve::<Dijkstra>(),
                 "euclidean" => result = solver.solve::<Euclidean>(),
                 "miss_placed" => result = solver.solve::<MissPlaced>(),
-                _ => result = solver.solve::<MissPlaced>(),
+                "out_of_raw" => result = solver.solve::<OutOfRaw>(),
+                _ => result = solver.solve::<Manhattan>(),
             }
             let (mem, time, moves) = result;
             println!("memory complexity: {}\ntime complexity: {}\nmoves count: {}\nmoves:\n{:?}", mem, time, moves.len(), moves);
