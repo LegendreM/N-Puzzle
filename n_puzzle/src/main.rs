@@ -10,14 +10,19 @@ use std::process;
 use n_puzzle::{Board, Solver, Tile};
 use n_puzzle::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};
 
-fn read_file(filename: &String) -> String {
-    let mut f = File::open(filename).expect("file not found");
+fn read_file(filename: &String) -> Result<String, String> {
+    let f = File::open(filename);
+    match f {
+        Ok(mut file) => {
+            let mut contents = String::new();
+            match file.read_to_string(&mut contents) {
+                Ok(_) => Ok(contents),
+                Err(e) => Err(format!("error in read file: {:?}", e))
+            }
+        },
+        Err(e) => Err(format!("error in read file: {:?}", e))
+    }
 
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect("something went wrong reading the file");
-
-    contents
 }
 
 fn remove_comments(lines: Lines) -> Vec<&str> {
@@ -58,6 +63,10 @@ fn parse_file(content: &String) -> Result<Vec<Vec<Tile>>, String> {
     let lines = content.lines();
     let str_board = remove_comments(lines);
     let line_count;
+
+    if str_board.len() == 0 {
+        return Err(format!("file doesn't contain board"))
+    }
     match str_board[0].parse::<usize>() {
         Ok(n) => line_count = n,
         Err(e) => return Err(format!("error parsing line count: {:?}", e)),
@@ -123,11 +132,11 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
     let heuristic = matches.value_of("HEURISTIC").unwrap();
     println!("Value for heuristic: {}", heuristic);
 
-    let contents = read_file(&String::from(input));
+    let contents = read_file(&String::from(input))?;
     if contents.is_empty() {
         return Err(format!("Empty input file").into());
     }
-    let expected = read_file(&String::from(expected));
+    let expected = read_file(&String::from(expected))?;
     if expected.is_empty() {
         return Err(format!("Empty expected file").into());
     }
