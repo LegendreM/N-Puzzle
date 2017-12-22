@@ -86,6 +86,8 @@ mod tests {
     use super::*;
     use heuristic::Manhattan;
     use heuristic::Dijkstra;
+    use heuristic::MissPlaced;
+    use heuristic::Euclidean;
 
     #[test]
     fn unmatching_sizes() {
@@ -192,6 +194,30 @@ mod tests {
         
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<Dijkstra>();
+
+        let expected_result = &[Move::Right, Move::Down, Move::Right];
+        assert_eq!(&result, expected_result)
+    }
+
+    #[test]
+    fn solver_3x3_euclidean() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
+        
+        let solver = Solver::new(board, expected).unwrap();
+        let result = solver.solve::<Euclidean>();
+
+        let expected_result = &[Move::Right, Move::Down, Move::Right];
+        assert_eq!(&result, expected_result)
+    }
+
+    #[test]
+    fn solver_3x3_miss_placed() {
+        let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
+        let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
+        
+        let solver = Solver::new(board, expected).unwrap();
+        let result = solver.solve::<MissPlaced>();
 
         let expected_result = &[Move::Right, Move::Down, Move::Right];
         assert_eq!(&result, expected_result)
