@@ -59,7 +59,7 @@ impl Solver {
     pub fn solve<H: Heuristic>(&self) -> (usize, usize, Vec<Move>) {
         let heuristic = H::new(&self.expected);
         let mut open_heap = BinaryHeap::new();
-        let mut close_set = HashMap::new();
+        let mut close_map = HashMap::new();
         let mut time_complexity = 0;
         let mut mem_complexity = 1;
         let mut mem_complexity_max = 0;
@@ -75,7 +75,7 @@ impl Solver {
             }
             let children = state.children(&heuristic);
             for child in children {
-                if let Some(&closed_state_cost) = close_set.get(&child.board.data) {
+                if let Some(&closed_state_cost) = close_map.get(&child.board.data) {
                     if closed_state_cost > child.cost {
                         open_heap.push(child);
                         time_complexity += 1;
@@ -90,7 +90,7 @@ impl Solver {
             if mem_complexity > mem_complexity_max {
                 mem_complexity_max = mem_complexity;
             }
-            close_set.insert(state.board.data.clone(), state.cost);
+            close_map.insert(state.board.data.clone(), state.cost);
         }
     }
 
