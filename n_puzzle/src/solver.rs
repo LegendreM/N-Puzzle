@@ -84,7 +84,7 @@ impl Solver {
             if mem_complexity > mem_complexity_max {
                 mem_complexity_max = mem_complexity;
             }
-            close_set.insert(state.board.data.clone());
+            close_set.insert(state.board.data);
         }
     }
 
