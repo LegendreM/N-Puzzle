@@ -75,13 +75,7 @@ impl Solver {
             }
             let children = state.children(&heuristic);
             for child in children {
-                if let Some(&closed_state_cost) = close_map.get(&child.board.data) {
-                    if closed_state_cost > child.cost {
-                        open_heap.push(child);
-                        time_complexity += 1;
-                        mem_complexity += 1;
-                    }
-                } else {
+                if close_map.get(&child.board.data).map_or(true, |&cost| cost > child.cost) {
                     open_heap.push(child);
                     time_complexity += 1;
                     mem_complexity += 1;
