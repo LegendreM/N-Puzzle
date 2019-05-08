@@ -1,5 +1,5 @@
-use heuristic::{Heuristic, index_positions};
-use board::Board;
+use crate::heuristic::{Heuristic, index_positions};
+use crate::board::Board;
 
 pub struct OutOfRaw {
     positions: Box<[(isize, isize)]>,

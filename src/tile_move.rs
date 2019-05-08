@@ -1,4 +1,4 @@
-use board::Board;
+use crate::board::Board;
 
 #[derive (Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Move {

@@ -1,5 +1,5 @@
-use heuristic::{Heuristic, index_positions};
-use board::Board;
+use crate::heuristic::{Heuristic, index_positions};
+use crate::board::Board;
 
 pub struct Euclidean {
     positions: Box<[(isize, isize)]>,

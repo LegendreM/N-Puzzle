@@ -1,9 +1,10 @@
 use std::collections::{HashSet, BinaryHeap};
 use std::{error, fmt};
-use board::Board;
-use state::State;
-use tile_move::Move;
-use heuristic::Heuristic;
+
+use crate::board::Board;
+use crate::state::State;
+use crate::tile_move::Move;
+use crate::heuristic::Heuristic;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Error {
@@ -188,7 +189,7 @@ mod tests {
     fn solver_3x3_manhattan() {
         let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
         let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
-        
+
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<Manhattan>();
 
@@ -200,7 +201,7 @@ mod tests {
     fn solver_3x3_dijkstra() {
         let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
         let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
-        
+
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<Dijkstra>();
 
@@ -212,7 +213,7 @@ mod tests {
     fn solver_3x3_euclidean() {
         let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
         let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
-        
+
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<Euclidean>();
 
@@ -224,7 +225,7 @@ mod tests {
     fn solver_3x3_miss_placed() {
         let board = Board::new(vec![1, 2, 3, 4, 5, 6, 7, 8, 0].into_boxed_slice(), 3);
         let expected = Board::new(vec![1, 2, 3, 0, 4, 6, 7, 5, 8].into_boxed_slice(), 3);
-        
+
         let solver = Solver::new(board, expected).unwrap();
         let result = solver.solve::<MissPlaced>();
 

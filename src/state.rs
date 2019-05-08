@@ -1,7 +1,7 @@
 use std::rc::Rc;
-use board::Board;
-use tile_move::Move;
-use heuristic::Heuristic;
+use crate::board::Board;
+use crate::tile_move::Move;
+use crate::heuristic::Heuristic;
 use std::cmp::Ordering;
 
 

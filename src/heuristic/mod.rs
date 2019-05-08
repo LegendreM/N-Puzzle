@@ -9,7 +9,7 @@ pub use self::dijkstra::Dijkstra;
 pub use self::euclidean::Euclidean;
 pub use self::miss_placed::MissPlaced;
 pub use self::out_of_raw::OutOfRaw;
-use board::Board;
+use crate::board::Board;
 
 fn index_positions(board: &Board) -> Box<[(isize, isize)]> {
         let line_size = board.line_size;

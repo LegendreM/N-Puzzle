@@ -1,10 +1,11 @@
 [package]
+edition = "2018"
 name = "n_puzzle"
 version = "0.1.0"
 authors = ["mlegendr"]
 
 [dependencies]
-clap = { version = "2.33.0", default-features = false }
+structopt = { version = "0.2.15", default-features = false }
 
 [profile.release]
 debug = true

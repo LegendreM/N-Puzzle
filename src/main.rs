@@ -1,16 +1,16 @@
-extern crate n_puzzle;
-extern crate clap;
-
-use clap::{Arg, App};
 use std::fs::File;
 use std::io::Read;
-use std::str::Lines;
+use std::path::{Path, PathBuf};
 use std::process;
+use std::str::Lines;
+use std::error::Error;
+
+use structopt::StructOpt;
 
 use n_puzzle::{Board, Solver, Tile};
 use n_puzzle::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};
 
-fn read_file(filename: &String) -> Result<String, String> {
+fn read_file(filename: &Path) -> Result<String, String> {
     let f = File::open(filename);
     match f {
         Ok(mut file) => {
@@ -74,7 +74,7 @@ fn parse_file(content: &String) -> Result<Vec<Vec<Tile>>, String> {
     if str_board.len() != line_count + 1 {
         return Err(format!("error parsing line count: line count != {:?}", line_count));
     }
-    let mut board: Vec<Vec<Tile>> = Vec::new(); 
+    let mut board: Vec<Vec<Tile>> = Vec::new();
     for line in str_board.iter().skip(1) {
         let board_line: Result<Vec<_>, _> = line.split_whitespace()
                 .map(|s| s.parse())
@@ -97,44 +97,38 @@ fn parse_file(content: &String) -> Result<Vec<Vec<Tile>>, String> {
     return Err(format!("error parsing teals"));
 }
 
-fn failable_main() -> Result<(), Box<::std::error::Error>> {
-    let matches = App::new("npuzzle")
-                          .version("1.0")
-                          .about("A* algorithm to solve npuzzle")
-                          .arg(Arg::with_name("INPUT")
-                               .short("i")
-                               .long("input")
-                               .value_name("FILE")
-                               .help("Input file which contains the npuzzle to solve")
-                               .required(true))
-                          .arg(Arg::with_name("EXPECTED")
-                               .short("e")
-                               .long("expected")
-                               .value_name("FILE")
-                               .help("Input file which contains the npuzzle expected solution")
-                               .required(true))
-                          .arg(Arg::with_name("HEURISTIC")
-                               .short("d")
-                               .long("distance")
-                               .value_name("STRING")
-                               .help("Heuristic used to solve npuzzle [manhattan, dijkstra, euclidean, miss_placed, out_of_raw]")
-                               .required(true))
-                          .get_matches();
+#[derive(Debug, StructOpt)]
+#[structopt(name = "n-puzzle", about = "A* algorithm to solve npuzzle")]
+struct Opt {
+    /// Input file which contains the npuzzle to solve
+    #[structopt(parse(from_os_str))]
+    input: PathBuf,
 
-    let input = matches.value_of("INPUT").unwrap();
-    println!("Value for input: {}", input);
+    /// Input file which contains the npuzzle expected solution
+    #[structopt(parse(from_os_str))]
+    expected: PathBuf,
 
-    let expected = matches.value_of("EXPECTED").unwrap();
-    println!("Value for expected: {}", expected);
+    /// Heuristic used to solve npuzzle [manhattan, dijkstra, euclidean, miss_placed, out_of_raw]
+    heuristic: String,
+}
 
-    let heuristic = matches.value_of("HEURISTIC").unwrap();
+fn failable_main() -> Result<(), Box<Error>> {
+    let opt = Opt::from_args();
+
+    let input = opt.input;
+    println!("Value for input: {:?}", input);
+
+    let expected = opt.expected;
+    println!("Value for expected: {:?}", expected);
+
+    let heuristic = opt.heuristic;
     println!("Value for heuristic: {}", heuristic);
 
-    let contents = read_file(&String::from(input))?;
+    let contents = read_file(&input)?;
     if contents.is_empty() {
         return Err(format!("Empty input file").into());
     }
-    let expected = read_file(&String::from(expected))?;
+    let expected = read_file(&expected)?;
     if expected.is_empty() {
         return Err(format!("Empty expected file").into());
     }
@@ -150,18 +144,20 @@ fn failable_main() -> Result<(), Box<::std::error::Error>> {
 
     match Solver::new(board, expected) {
         Ok(solver) => {
-            let result;
+            let result = match heuristic.as_str() {
+                "manhattan" => solver.solve::<Manhattan>(),
+                "dijkstra" => solver.solve::<Dijkstra>(),
+                "euclidean" => solver.solve::<Euclidean>(),
+                "miss_placed" => solver.solve::<MissPlaced>(),
+                "out_of_raw" => solver.solve::<OutOfRaw>(),
+                _ => solver.solve::<Manhattan>(),
+            };
 
-            match heuristic {
-                "manhattan" => result = solver.solve::<Manhattan>(),
-                "dijkstra" => result = solver.solve::<Dijkstra>(),
-                "euclidean" => result = solver.solve::<Euclidean>(),
-                "miss_placed" => result = solver.solve::<MissPlaced>(),
-                "out_of_raw" => result = solver.solve::<OutOfRaw>(),
-                _ => result = solver.solve::<Manhattan>(),
-            }
             let (mem, time, moves) = result;
-            println!("memory complexity: {}\ntime complexity: {}\nmoves count: {}\nmoves:\n{:?}", mem, time, moves.len(), moves);
+            println!("memory complexity: {}", mem);
+            println!("time complexity: {}", time);
+            println!("moves count: {}", moves.len());
+            println!("moves:\r\n{:?}", moves);
         },
         Err(e) => println!("{}", e)
     }

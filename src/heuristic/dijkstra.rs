@@ -1,5 +1,5 @@
-use heuristic::Heuristic;
-use board::Board;
+use crate::heuristic::Heuristic;
+use crate::board::Board;
 
 pub struct Dijkstra;
 

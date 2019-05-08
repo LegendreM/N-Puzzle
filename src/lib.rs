@@ -4,7 +4,7 @@ mod board;
 mod state;
 mod tile_move;
 
-pub use board::{Board, Tile};
-pub use solver::Solver;
-pub use heuristic::Heuristic;
-pub use heuristic::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};
+pub use crate::board::{Board, Tile};
+pub use crate::solver::Solver;
+pub use crate::heuristic::Heuristic;
+pub use crate::heuristic::{Manhattan, Dijkstra, Euclidean, MissPlaced, OutOfRaw};
