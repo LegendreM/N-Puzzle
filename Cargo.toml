@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["mlegendr"]
 
 [dependencies]
-clap = "2"
+clap = { version = "2.33.0", default-features = false }
 
 [profile.release]
 debug = true
