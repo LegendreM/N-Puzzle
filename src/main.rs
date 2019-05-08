@@ -71,7 +71,7 @@ fn is_board_valid(numbers: &[Tile]) -> bool {
 }
 
 fn no_comment(string: &str) -> Option<&str> {
-    string.split('#').next().filter(|s| !s.is_empty())
+    string.split('#').next().filter(|s| !s.trim().is_empty())
 }
 
 fn read_board<R: Read>(read: R) -> Result<(Box<[Tile]>, usize), Error> {
