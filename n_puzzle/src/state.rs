@@ -40,14 +40,15 @@ impl State {
 
 impl Ord for State {
     fn cmp(&self, other: &State) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        // Notice that the we flip the ordering on costs.
+        let self_cost = self.distance * self.cost;
+        let other_cost = other.distance * other.cost;
+        other_cost.cmp(&self_cost)
     }
 }
 
 impl PartialOrd for State {
     fn partial_cmp(&self, other: &State) -> Option<Ordering> {
-        // Notice that the we flip the ordering on costs.
-        Some(other.distance.cmp(&self.distance)
-                .then(other.cost.cmp(&self.cost)))
+        Some(self.cmp(other))
     }
 }
